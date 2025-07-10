@@ -779,30 +779,43 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     <div className="h-full flex">
       {/* SubStep Flow Canvas */}
       <div className="flex-1 border-r border-slate-200">
-        <div className="p-4 border-b border-slate-200 bg-slate-50">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-slate-800">サブステップ計画</h3>
-            {canEdit && (
-              <div className="flex gap-2">
-                <button
-                  onClick={handleGenerateProposals}
-                  disabled={isGeneratingProposals}
-                  className="flex items-center gap-2 px-3 py-1.5 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-slate-400"
-                >
-                  {isGeneratingProposals ? <LoadingSpinner size="sm" color="border-white" /> : <SparklesIcon className="w-4 h-4" />}
-                  AI提案
-                </button>
-                <button
-                  onClick={handleAddSubStep}
-                  className="flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
-                  <PlusCircleIcon className="w-4 h-4" />
-                  追加
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+       <div className="p-4 border-b border-slate-200 bg-slate-50">
+  <div className="flex items-center justify-between">
+    <h3 className="text-lg font-semibold text-slate-800">サブステップ計画</h3>
+    {canEdit && (
+      <div className="flex gap-2">
+        {/* 🔽 自動整列ボタンを追加 */}
+        <button
+          onClick={handleAutoLayoutSubSteps}
+          disabled={!canEdit || !extendedDetails?.subSteps?.length}
+          className="inline-flex items-center px-3 py-1.5 border border-slate-300 text-sm font-medium rounded-md shadow-sm text-slate-700 bg-white hover:bg-slate-50 disabled:bg-slate-200 disabled:cursor-not-allowed"
+          title="サブステップを自動整列"
+        >
+          <RefreshIcon className="w-4 h-4 mr-1" />
+          自動整列
+        </button>
+
+        <button
+          onClick={handleGenerateProposals}
+          disabled={isGeneratingProposals}
+          className="flex items-center gap-2 px-3 py-1.5 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-slate-400"
+        >
+          {isGeneratingProposals ? <LoadingSpinner size="sm" color="border-white" /> : <SparklesIcon className="w-4 h-4" />}
+          AI提案
+        </button>
+
+        <button
+          onClick={handleAddSubStep}
+          className="flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        >
+          <PlusCircleIcon className="w-4 h-4" />
+          追加
+        </button>
+      </div>
+    )}
+  </div>
+</div>
+
         
         <div
           ref={flowContainerRef}
