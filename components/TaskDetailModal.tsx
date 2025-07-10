@@ -141,6 +141,33 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     setConnectors(newConnectors);
   }, [extendedDetails.subSteps, subStepCardRefs]);
 
+  const handleAutoLayoutSubSteps = useCallback(() => {
+    if (!extendedDetails.subSteps) return;
+
+    const CARD_WIDTH = 200;
+    const CARD_HEIGHT = 120;
+    const HORIZONTAL_SPACING = 250;
+    const VERTICAL_SPACING = 150;
+    const PADDING = 20;
+
+    const updatedSubSteps = extendedDetails.subSteps.map((subStep, index) => ({
+      ...subStep,
+      position: {
+        x: PADDING + (index % 3) * HORIZONTAL_SPACING,
+        y: PADDING + Math.floor(index / 3) * VERTICAL_SPACING,
+      },
+    }));
+
+    const updatedDetails = {
+      ...extendedDetails,
+      subSteps: updatedSubSteps,
+    };
+
+    setExtendedDetails(updatedDetails);
+    onUpdateTask(task.id, updatedDetails);
+    calculateConnectors(); // 🔁 位置更新後にコネクタ再描画
+  }, [extendedDetails, task.id, onUpdateTask, calculateConnectors]);
+
   useEffect(() => {
     const timer = setTimeout(calculateConnectors, 50);
     return () => clearTimeout(timer);
