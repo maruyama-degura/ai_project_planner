@@ -165,83 +165,89 @@ const { data: membersData, error: membersError } = await supabase
     };
   }
 
-  // プロジェクトを更新
-  static async updateProject(
-    id: string,
-    updates: {
-      title?: string;
-      goal?: string;
-      targetDate?: string;
-      tasks?: ProjectTask[];
-      ganttData?: GanttItem[] | null;
-      expectedVersion?: number; // 楽観的ロック用
-    }
-  ): Promise<ProjectData> {
-    if (!supabase) {
-      throw new Error(SUPABASE_NOT_AVAILABLE);
-    }
+// updateProject 関数を以下に置き換え
+static async updateProject(
+  id: string,
+  updates: {
+    title?: string;
+    goal?: string;
+    targetDate?: string;
+    tasks?: ProjectTask[];
+    ganttData?: GanttItem[] | null;
+    expectedVersion?: number; // オプションに変更
+  }
+): Promise<ProjectData> {
+  if (!supabase) {
+    throw new Error(SUPABASE_NOT_AVAILABLE);
+  }
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      throw new Error('ログインが必要です');
-    }
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('ログインが必要です');
+  }
 
-    // 楽観的ロックのチェック
-    if (updates.expectedVersion !== undefined) {
-      const { data: currentProject, error: checkError } = await supabase
-        .from('projects')
-        .select('version')
-        .eq('id', id)
-        .single();
-
-      if (checkError) {
-        throw new Error(`プロジェクトの確認に失敗しました: ${checkError.message}`);
-      }
-
-      if (currentProject.version !== updates.expectedVersion) {
-        throw new Error('プロジェクトが他のユーザーによって更新されています。最新の状態を取得してから再度お試しください。');
-      }
-    }
-
-    const updateData: any = {};
-    
-    if (updates.title !== undefined) updateData.title = updates.title;
-    if (updates.goal !== undefined) updateData.goal = updates.goal;
-    if (updates.targetDate !== undefined) updateData.target_date = updates.targetDate;
-    if (updates.tasks !== undefined) updateData.tasks_data = updates.tasks;
-    if (updates.ganttData !== undefined) updateData.gantt_data = updates.ganttData;
-    
-    // バージョンを更新
-    updateData.version = (updates.expectedVersion || 1) + 1;
-
-    const { data, error } = await supabase
+  // 楽観的ロックのチェックを削除（コメントアウト）
+  /*
+  if (updates.expectedVersion !== undefined) {
+    const { data: currentProject, error: checkError } = await supabase
       .from('projects')
-      .update(updateData)
+      .select('version')
       .eq('id', id)
-      .select(`
-        *,
-        project_members!inner(role)
-      `)
       .single();
 
-    if (error) {
-      throw new Error(`プロジェクトの更新に失敗しました: ${error.message}`);
+    if (checkError) {
+      throw new Error(`プロジェクトの確認に失敗しました: ${checkError.message}`);
     }
 
-    return {
-      id: data.id,
-      title: data.title,
-      goal: data.goal,
-      targetDate: data.target_date,
-      tasks: data.tasks_data || [],
-      ganttData: data.gantt_data,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
-      lastModifiedBy: data.last_modified_by,
-      version: data.version,
-      userRole: data.project_members[0]?.role || 'viewer',
-    };
+    if (currentProject.version !== updates.expectedVersion) {
+      throw new Error('プロジェクトが他のユーザーによって更新されています。最新の状態を取得してから再度お試しください。');
+    }
   }
+  */
+
+  const updateData: any = {};
+  
+  if (updates.title !== undefined) updateData.title = updates.title;
+  if (updates.goal !== undefined) updateData.goal = updates.goal;
+  if (updates.targetDate !== undefined) updateData.target_date = updates.targetDate;
+  if (updates.tasks !== undefined) updateData.tasks_data = updates.tasks;
+  if (updates.ganttData !== undefined) updateData.gantt_data = updates.ganttData;
+  
+  // バージョン更新を削除
+  // updateData.version = (updates.expectedVersion || 1) + 1;
+
+  const { data, error } = await supabase
+    .from('projects')
+    .update(updateData)
+    .eq('id', id)
+    .select(`
+      *,
+      project_members!inner(role)
+    `)
+    .single();
+
+  if (error) {
+    throw new Error(`プロジェクトの更新に失敗しました: ${error.message}`);
+  }
+
+  return {
+    id: data.id,
+    title: data.title,
+    goal: data.goal,
+    targetDate: data.target_date,
+    tasks: data.tasks_data || [],
+    ganttData: data.gantt_data,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+    lastModifiedBy: data.last_modified_by,
+    version: data.version || 1, // バージョンはそのまま保持
+    userRole: data.project_members[0]?.role || 'viewer',
+  };
+}
+
+
+
+  
 
   // プロジェクトを削除
   static async deleteProject(id: string): Promise<void> {
